@@ -1,8 +1,34 @@
 import { apiFetch } from "@/lib/api";
 
-export async function getProductBySlug(slug: string) {
-  const j = await apiFetch<{ ok: boolean; product: { _id: string; slug: string; title: string; price: number; images?: string[]; stock?: number } }>(
-    `/api/v1/products/slug/${encodeURIComponent(slug)}`
-  );
-  return j.product;
+export type CreateOrderInput = {
+  customerName: string;
+  customerPhone?: string;
+  customerAddress: string;
+  paymentMethod: "cod" | "banking" | "momo";
+  note?: string;
+  items: { productId: string; quantity: number }[];
+};
+
+export type OrderItem = {
+  productId: string;
+  quantity: number;
+};
+
+export type Order = {
+  id: string;
+  customerName: string;
+  customerPhone?: string;
+  customerAddress: string;
+  paymentMethod: "cod" | "banking" | "momo";
+  note?: string;
+  items: OrderItem[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+export function createOrder(input: CreateOrderInput) {
+  return apiFetch<{ ok: boolean; order: Order }>("/api/v1/orders", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }

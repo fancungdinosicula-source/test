@@ -3,7 +3,7 @@ import type { Product } from "@/types/product";
 const COLORS = ["Đen", "Trắng", "Xanh", "Be", "Nâu"];
 const SIZES = ["S", "M", "L", "XL"];
 const BRANDS = ["NaggiHunter", "SatNhanDaDen", "QuaiVatDaMau", "Nige"];
-const TYPES = ["Áo", "Quần"];
+
 // Hàm tiện lợi để tạo sản phẩm
 function createProduct(
   id: number,
@@ -85,3 +85,4 @@ createProduct(45, "Áo Sao Băng", 259000, "/IMAGES/3.png", BRANDS[2], COLORS[4]
   createProduct(49, "Áo Mặt Trăng", 199000, "/IMAGES/1.png", BRANDS[0], COLORS[3], SIZES[1], "fashion", 0, 4, "Áo mang hình ảnh mặt trăng, huyền bí và lãng mạn."),
   createProduct(50, "Quần Cá Sấu", 299000, "/IMAGES/2.png", BRANDS[1], COLORS[4], SIZES[2], "fashion", 21, 5, "Quần mạnh mẽ, lấy cảm hứng từ cá sấu hoang dã."),
 ];
+

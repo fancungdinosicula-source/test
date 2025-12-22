@@ -7,7 +7,7 @@ import { cn } from "@/lib/cn";
 
 export default function SiteHeader() {
   const pathname = usePathname();
-  const [q, setQ] = useState("");
+ 
 
   const Nav = ({ href, children }: { href: string; children: React.ReactNode }) => (
     <Link
@@ -38,3 +38,4 @@ export default function SiteHeader() {
     </header>
   );
 }
+

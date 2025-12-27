@@ -17,7 +17,7 @@ app.use(
 );
 
 // CORS theo ENV
-const allowOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
+const allowOrigin = process.env.CORS_ORIGIN || "https://mittobit.onrender.com";
 app.use(
   cors({
     origin: allowOrigin,
@@ -79,5 +79,6 @@ app.use((err, req, res, next) => {
   }
   res.status(status).json({ ok: false, error: { code, message } });
 });
+
 
 module.exports = app;

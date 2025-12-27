@@ -29,7 +29,7 @@ export async function generateMetadata(
   const product = getProductBySlug(params.slug);
 
   return {
-    title: product ? `${product.title} — Shoply` : "Sản phẩm — Shoply",
+    title: product ? `${product.title} — Shoply` : "Sản phẩm — mittobit",
   };
 }
 
@@ -245,3 +245,4 @@ export default function ProductDetailPage({ params }: PageProps) {
     </main>
   );
 }
+

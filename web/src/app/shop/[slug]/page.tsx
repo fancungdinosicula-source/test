@@ -10,8 +10,9 @@ import AddToCartButton from "@/features/cart/AddToCartButton";
 
 const ProductList = PRODUCTS as (Product & { discount?: number })[];
 
-export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const slug = (await params).slug;
+// ✅ Fixed: params is now Promise
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
   const product = getProductBySlug(slug);
   return {
     title: product ? `${product.title} — Shoply` : "Sản phẩm — Shoply",
@@ -26,8 +27,9 @@ function getRandomProducts(currentSlug: string, count: number) {
   return shuffled.slice(0, count);
 }
 
-export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const slug = (await params).slug;
+// ✅ Fixed: params is now Promise
+export default async function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
   const product = getProductBySlug(slug) as Product & { discount?: number }; 
   
   if (!product) {
@@ -76,7 +78,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
 
           {product.description && (
             <p className="mt-4 text-gray-700 leading-relaxed">
-              {product.description}
+{product.description}
             </p>
           )}
 
@@ -147,7 +149,7 @@ export default async function ProductDetailPage({ params }: { params: { slug: st
                     )}
                     {p.discount && p.discount > 0 && (
                       <span className="absolute right-2 top-2 text-xs bg-green-600 text-white px-2 py-1 rounded-md">
-                        -{p.discount}%
+-{p.discount}%
                       </span>
                     )}
 

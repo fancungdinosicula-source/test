@@ -3,12 +3,22 @@
 import { useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PRODUCTS } from "@/mock/products";
-import { calcTotals } from "@/lib/checkout";
 
 type PM = "cod";
 
+type CheckoutItem = {
+  slug: string;
+  quantity: number;
+  product: (typeof PRODUCTS)[number];
+  finalPrice: number;
+  lineTotal: number;
+};
+
 function formatVND(n: number) {
-  return n.toLocaleString("vi-VN", { style: "currency", currency: "VND" });
+  return n.toLocaleString("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  });
 }
 
 function getFinalPrice(price: number, discount?: number) {
@@ -23,17 +33,17 @@ export default function CheckoutPage() {
 
   const itemsParam = sp.get("items") || "";
 
-  const parsed = useMemo(() => {
+  const parsed = useMemo<CheckoutItem[]>(() => {
     return itemsParam
       .split(",")
       .map((p) => p.trim())
       .filter(Boolean)
       .map((pair) => {
         const [slug, qty] = pair.split(":");
-        const product = PRODUCTS.find((x) => x.slug === slug);
+        const product = PRODUCTS.find((p) => p.slug === slug);
         if (!product) return null;
 
-        const quantity = Math.max(+qty || 1, 1);
+        const quantity = Math.max(Number(qty) || 1, 1);
         const finalPrice = getFinalPrice(product.price, product.discount);
 
         return {
@@ -42,14 +52,14 @@ export default function CheckoutPage() {
           product,
           finalPrice,
           lineTotal: finalPrice * quantity,
-        };
+        } satisfies CheckoutItem;
       })
-      .filter(Boolean) as unknown[];
+      .filter((x): x is CheckoutItem => x !== null);
   }, [itemsParam]);
 
   const totals = useMemo(() => {
     const subtotal = parsed.reduce(
-      (sum, x) => sum + x.lineTotal,
+      (sum, item) => sum + item.lineTotal,
       0
     );
     const shippingFee = 15000;
@@ -69,7 +79,16 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [order, setOrder] = useState<unknown>(null);
+  const [order, setOrder] = useState<{
+    id: string;
+    status: string;
+    customer: { name: string; phone: string; addr: string };
+    pm: PM;
+    note: string;
+    items: CheckoutItem[];
+    totals: typeof totals;
+  } | null>(null);
+
   const [showSuccess, setShowSuccess] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -103,7 +122,6 @@ export default function CheckoutPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-yellow-100 via-yellow-200 to-yellow-100 text-red-900">
-      {/* HEADER */}
       <header className="bg-gradient-to-r from-red-800 via-red-700 to-red-900
         text-yellow-200 py-8 text-center text-4xl
         border-b-4 border-yellow-500 shadow-xl">
@@ -114,9 +132,7 @@ export default function CheckoutPage() {
       </header>
 
       <section className="max-w-6xl mx-auto px-4 py-10 grid md:grid-cols-3 gap-6">
-        {/* MAIN */}
         <div className="md:col-span-2 space-y-6">
-          {/* CART */}
           <div className="rounded-2xl border-4 border-yellow-600 bg-white/90 shadow-xl p-5">
             <h2 className="text-xl font-bold mb-4">🏺 Tóm tắt bảo vật</h2>
 
@@ -141,50 +157,55 @@ export default function CheckoutPage() {
             ))}
           </div>
 
-          {/* FORM */}
           <form
             onSubmit={onSubmit}
             className="rounded-2xl border-4 border-yellow-600 bg-white/95 shadow-xl p-6 space-y-4"
           >
             <h2 className="text-xl font-bold">📜 Thông tin nhận bảo vật</h2>
 
-            <input className="w-full h-11 border-2 border-yellow-600 px-3 rounded-md"
-              placeholder="👤 Họ tên" value={name} onChange={e => setName(e.target.value)} />
-            <input className="w-full h-11 border-2 border-yellow-600 px-3 rounded-md"
-              placeholder="📞 Số điện thoại" value={phone} onChange={e => setPhone(e.target.value)} />
-            <textarea className="w-full border-2 border-yellow-600 px-3 py-2 rounded-md"
-              placeholder="🏰 Địa chỉ giao hàng" value={addr} onChange={e => setAddr(e.target.value)} />
+            <input
+              className="w-full h-11 border-2 border-yellow-600 px-3 rounded-md"
+              placeholder="👤 Họ tên"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
 
-            <div>
-              <p className="font-semibold mb-1">💰 Phương thức</p>
-              <div className="flex gap-4">
-                {["cod"].map((m) => (
-                  <label key={m}
-                    className={`px-4 py-2 rounded-full border-2 cursor-pointer
-                    ${pm === m ? "bg-red-700 text-yellow-200 border-yellow-500" : "border-yellow-600"}`}>
-                    <input hidden type="radio" checked={pm === m} onChange={() => setPM(m as PM)} />
-                    {m.toUpperCase()}
-                  </label>
-                ))}
-              </div>
-            </div>
+            <input
+              className="w-full h-11 border-2 border-yellow-600 px-3 rounded-md"
+              placeholder="📞 Số điện thoại"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
 
-            <textarea className="w-full border-2 border-yellow-600 px-3 py-2 rounded-md"
-              placeholder="🖋 Ghi chú" value={note} onChange={e => setNote(e.target.value)} />
+            <textarea
+              className="w-full border-2 border-yellow-600 px-3 py-2 rounded-md"
+              placeholder="🏰 Địa chỉ giao hàng"
+              value={addr}
+              onChange={(e) => setAddr(e.target.value)}
+            />
+
+            <textarea
+              className="w-full border-2 border-yellow-600 px-3 py-2 rounded-md"
+              placeholder="🖋 Ghi chú"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
 
             {error && <p className="text-red-600">{error}</p>}
 
-            <button disabled={submitting}
+            <button
+              disabled={submitting}
               className="w-full h-12 rounded-full bg-gradient-to-r from-red-700 to-red-900
-              text-yellow-200 font-bold border-2 border-yellow-500 shadow-xl">
+              text-yellow-200 font-bold border-2 border-yellow-500 shadow-xl"
+            >
               {submitting ? "⏳ Đang hành lễ..." : "👑 Ban Chỉ Đặt Hàng"}
             </button>
           </form>
         </div>
 
-        {/* SUMMARY */}
         <aside className="rounded-2xl border-4 border-yellow-600 bg-white/95 shadow-xl p-6 h-fit">
           <h2 className="text-xl font-bold mb-3">📊 Tổng kết</h2>
+
           <div className="space-y-2">
             <div className="flex justify-between">
               <span>Tạm tính</span>
@@ -202,12 +223,9 @@ export default function CheckoutPage() {
         </aside>
       </section>
 
-      {/* MODAL SUCCESS */}
       {showSuccess && order && (
         <div className="fixed inset-0 z-50 bg-black/60 flex items-center justify-center">
-          <div className="bg-white rounded-2xl border-4 border-yellow-600
-            shadow-2xl max-w-2xl w-full p-6">
-
+          <div className="bg-white rounded-2xl border-4 border-yellow-600 shadow-2xl max-w-2xl w-full p-6">
             <h2 className="text-2xl font-extrabold text-green-700 text-center mb-4">
               ✅ ĐẶT HÀNG THÀNH CÔNG
             </h2>
@@ -217,17 +235,6 @@ export default function CheckoutPage() {
               <p><b>Người nhận:</b> {order.customer.name}</p>
               <p><b>SĐT:</b> {order.customer.phone}</p>
               <p><b>Địa chỉ:</b> {order.customer.addr}</p>
-              <p><b>Thanh toán:</b> {order.pm.toUpperCase()}</p>
-              {order.note && <p><b>Ghi chú:</b> {order.note}</p>}
-            </div>
-
-            <div className="mt-3">
-              {order.items.map((x: unknown) => (
-                <div key={x.slug} className="flex justify-between text-sm">
-                  <span>{x.product.title} × {x.quantity}</span>
-                  <span>{formatVND(x.lineTotal)}</span>
-                </div>
-              ))}
             </div>
 
             <div className="mt-3 border-t pt-2 flex justify-between font-bold">
@@ -235,26 +242,17 @@ export default function CheckoutPage() {
               <span>{formatVND(order.totals.total)}</span>
             </div>
 
-            <div className="mt-6 flex justify-center gap-4">
+            <div className="mt-6 flex justify-center">
               <button
                 onClick={() => router.push("/shop")}
                 className="px-6 h-11 rounded-full bg-red-700 text-yellow-200 font-bold"
               >
                 🏺 Về Shop
               </button>
-              <button
-                onClick={() => setShowSuccess(false)}
-                className="px-6 h-11 rounded-full border-2 border-yellow-600"
-              >
-                Đóng
-              </button>
             </div>
           </div>
         </div>
       )}
-
-      <footer className="h-3 bg-gradient-to-r from-red-700 via-yellow-500 to-red-700" />
     </main>
   );
 }
-

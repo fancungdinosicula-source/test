@@ -44,7 +44,7 @@ export default function CheckoutPage() {
           lineTotal: finalPrice * quantity,
         };
       })
-      .filter(Boolean) as any[];
+      .filter(Boolean) as unknown[];
   }, [itemsParam]);
 
   const totals = useMemo(() => {
@@ -69,7 +69,7 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [order, setOrder] = useState<any>(null);
+  const [order, setOrder] = useState<unknown>(null);
   const [showSuccess, setShowSuccess] = useState(false);
 
   async function onSubmit(e: React.FormEvent) {
@@ -222,7 +222,7 @@ export default function CheckoutPage() {
             </div>
 
             <div className="mt-3">
-              {order.items.map((x: any) => (
+              {order.items.map((x: unknown) => (
                 <div key={x.slug} className="flex justify-between text-sm">
                   <span>{x.product.title} × {x.quantity}</span>
                   <span>{formatVND(x.lineTotal)}</span>
@@ -257,3 +257,4 @@ export default function CheckoutPage() {
     </main>
   );
 }
+

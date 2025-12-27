@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useMemo, useState } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { PRODUCTS } from "@/mock/products";
@@ -27,7 +28,7 @@ function getFinalPrice(price: number, discount?: number) {
     : price;
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const sp = useSearchParams();
   const router = useRouter();
 
@@ -233,7 +234,7 @@ export default function CheckoutPage() {
             <div className="space-y-1 text-sm">
               <p><b>Mã đơn:</b> {order.id}</p>
               <p><b>Người nhận:</b> {order.customer.name}</p>
-              <p><b>SĐT:</b> {order.customer.phone}</p>
+                            <p><b>SĐT:</b> {order.customer.phone}</p>
               <p><b>Địa chỉ:</b> {order.customer.addr}</p>
             </div>
 
@@ -254,5 +255,13 @@ export default function CheckoutPage() {
         </div>
       )}
     </main>
+  );
+}
+
+export default function Page() {
+  return (
+    <Suspense fallback={<div>Đang tải trang thanh toán...</div>}>
+      <CheckoutContent />
+    </Suspense>
   );
 }

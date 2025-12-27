@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { PRODUCTS } from '@/mock/products';
+import { PRODUCTS } from "@/mock/products";
 import { formatVND } from "@/lib/format"; 
 import type { Product } from "@/types/product";
 import { getProductBySlug } from "@/lib/catalog";
@@ -10,8 +10,9 @@ import AddToCartButton from "@/features/cart/AddToCartButton";
 
 const ProductList = PRODUCTS as (Product & { discount?: number })[];
 
+// ✅ generateMetadata không dùng await cho params
 export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
-  const slug = (await params).slug;
+  const slug = params.slug;
   const product = getProductBySlug(slug);
   return {
     title: product ? `${product.title} — Shoply` : "Sản phẩm — Shoply",
@@ -26,8 +27,9 @@ function getRandomProducts(currentSlug: string, count: number) {
   return shuffled.slice(0, count);
 }
 
+// ✅ ProductDetailPage không dùng await cho params
 export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
-  const slug = (await params).slug;
+  const slug = params.slug;
   const product = getProductBySlug(slug) as Product & { discount?: number }; 
   
   if (!product) {

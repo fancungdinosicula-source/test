@@ -53,8 +53,10 @@ export async function POST(req: Request) {
 
     // Giả lập: không lưu DB; trả về order để FE hiển thị
     return NextResponse.json({ ok: true, order });
-  } catch (e: unknown) {
-    const msg = String(e?.message || "");
+  } catch (e) {
+    // ✅ Fixed: Properly handle error typing
+    const msg = e instanceof Error ? e.message : String(e);
+    
     if (msg.startsWith("OUT_OF_STOCK:")) {
       return NextResponse.json({ ok: false, error: { code: "OUT_OF_STOCK", message: msg.replace("OUT_OF_STOCK:", "") } }, { status: 400 });
     }
@@ -63,5 +65,4 @@ export async function POST(req: Request) {
     }
     return NextResponse.json({ ok: false, error: { code: "INTERNAL", message: "Checkout failed" } }, { status: 500 });
   }
-
 }

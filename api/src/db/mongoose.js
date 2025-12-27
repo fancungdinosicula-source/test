@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 
-const uri = process.env.MONGODB_URI || "mongodb://127.0.0.1:27017";
-const dbName = process.env.MONGODB_DB || "shoply";
+const uri = process.env.MONGODB_URI || "mongodb+srv://Hori:proud2006@hori.niyh2zf.mongodb.net/?appName=Hori";
+const dbName = process.env.MONGODB_DB || "mittobit-db";
 
 let isConnected = false;
 
@@ -22,5 +22,6 @@ function bindMongoLogs() {
   conn.on("error", (err) => console.error("✖ Mongo error:", err.message));
   conn.on("disconnected", () => console.warn("⚠ Mongo disconnected"));
 }
+
 
 module.exports = { connectMongo, bindMongoLogs };

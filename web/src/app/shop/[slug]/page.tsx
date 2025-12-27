@@ -2,73 +2,46 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { formatVND } from "@/lib/format";
+import { PRODUCTS } from '@/mock/products';
+import { formatVND } from "@/lib/format"; 
 import type { Product } from "@/types/product";
-import SiteFooter from "@/components/SiteFooter";
 import { getProductBySlug } from "@/lib/catalog";
 import AddToCartButton from "@/features/cart/AddToCartButton";
 
-const API_URL = "https://supershoply-api.onrender.com/api/v1";
+const ProductList = PRODUCTS as (Product & { discount?: number })[];
 
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
+export async function generateMetadata({ params }: { params: { slug: string } }): Promise<Metadata> {
   const slug = (await params).slug;
-  const product = await getProductBySlug(slug);
+  const product = getProductBySlug(slug);
   return {
-    title: product ? `${product.title} – Shoply` : "Sản phẩm – Shoply",
+    title: product ? `${product.title} — Shoply` : "Sản phẩm — Shoply",
   };
 }
 
-async function getRandomProducts(
-  currentSlug: string,
-  count: number
-): Promise<Product[]> {
-  try {
-    const response = await fetch(`${API_URL}/products?limit=100`, {
-      cache: "no-store",
-    });
-
-    if (!response.ok) return [];
-
-    const { data } = await response.json();
-
-    const filtered = data.filter(
-      (p: Product) => p.slug !== currentSlug && (p.stock ?? 0) > 0
-    );
-
-    const shuffled = filtered.sort(() => 0.5 - Math.random());
-    return shuffled.slice(0, count);
-  } catch (error) {
-    console.error("Error fetching related products:", error);
-    return [];
-  }
+function getRandomProducts(currentSlug: string, count: number) {
+  const filteredProducts = ProductList.filter(
+    (p) => p.slug !== currentSlug && (p.stock ?? 0) > 0
+  );
+  const shuffled = filteredProducts.sort(() => 0.5 - Math.random());
+  return shuffled.slice(0, count);
 }
 
-export default async function ProductDetailPage({
-  params,
-}: {
-  params: { slug: string };
-}) {
+export default async function ProductDetailPage({ params }: { params: { slug: string } }) {
   const slug = (await params).slug;
-  const product = await getProductBySlug(slug);
-
+  const product = getProductBySlug(slug) as Product & { discount?: number }; 
+  
   if (!product) {
     notFound();
   }
-
-  const imageSrc: string =
-    Array.isArray(product.images) && product.images.length > 0
-      ? product.images[0]
-      : "/ham.png";
-
+  
+  const imageSrc = product.images?.[0] ?? "/ham.png";
   const currentStock = product.stock ?? 0;
-  const isDeal = (product.price ?? 0) < 150000;
   const outOfStock = currentStock <= 0;
+  const finalPrice = product.discount && product.discount > 0
+    ? Math.round(product.price * (1 - product.discount / 100))
+    : product.price;
 
-  const relatedProducts = await getRandomProducts(slug, 4);
+  const relatedProducts = getRandomProducts(slug, 4); 
 
   return (
     <main className="py-6">
@@ -76,7 +49,7 @@ export default async function ProductDetailPage({
         <div className="relative w-full">
           <div className="relative aspect-square">
             <Image
-              src={imageSrc}
+              src={imageSrc} 
               alt={product.title}
               width={600}
               height={600}
@@ -87,43 +60,58 @@ export default async function ProductDetailPage({
                 Hết hàng
               </span>
             )}
-            {isDeal && (
-              <span className="absolute right-2 top-2 text-xs bg-amber-500 text-white px-2 py-1 rounded-md">
-                Deal
+            {product.discount && product.discount > 0 && (
+              <span className="absolute right-2 top-2 text-xs bg-green-600 text-white px-2 py-1 rounded-md">
+                -{product.discount}%
               </span>
             )}
           </div>
         </div>
+
         <div>
           <h2 className="text-2xl font-semibold">{product.title}</h2>
           <p className="mt-2 text-gray-600">Mã: {product.slug}</p>
           <p className="mt-2 text-black-600">Hãng: {product.brand}</p>
-<p className="mt-2 text-black-600">Đánh giá: {product.rating}</p>
-          <p className="mt-4 text-2xl font-bold">{formatVND(product.price)}</p>
+          <p className="mt-2 text-black-600">Đánh giá: {product.rating}</p>
+
+          {product.description && (
+            <p className="mt-4 text-gray-700 leading-relaxed">
+              {product.description}
+            </p>
+          )}
+
+          <p className="mt-4 text-2xl font-bold">
+            {product.discount && product.discount > 0 ? (
+              <>
+                <span className="line-through text-gray-400 mr-2">
+                  {formatVND(product.price)}
+                </span>
+                <span className="text-red-600 font-semibold">
+                  {formatVND(finalPrice)}
+                </span>
+                <span className="ml-2 text-sm text-green-600">-{product.discount}%</span>
+              </>
+            ) : (
+              formatVND(product.price)
+            )}
+          </p>
 
           {outOfStock ? (
             <p className="mt-2 text-red-600 font-medium">Hết hàng</p>
           ) : (
-            <p className="mt-2 text-green-600 font-medium">
-              Còn {currentStock} sản phẩm
-            </p>
+            <p className="mt-2 text-green-600 font-medium">Còn {currentStock} sản phẩm</p>
           )}
 
-          <div className="mt-6 flex gap-3 ">
+          <div className="mt-6 flex gap-4">
             <AddToCartButton
               product={product}
-              disabled={product.stock <= 0}
-              fullWidth={false}
-            />
-            <button
-              className="h-10 px-4 rounded-md border bg-black text-white disabled:opacity-50"
               disabled={outOfStock}
-            >
-              Mua ngay
-            </button>
+              fullWidth={false}
+              className="h-12 px-6 rounded-lg bg-yellow-500 text-white font-semibold hover:bg-yellow-600 transition-colors shadow-md"
+            />
             <Link
-              className="h-10 px-4 rounded-md border flex items-center"
               href="/shop"
+              className="h-12 px-6 rounded-lg border border-yellow-500 text-yellow-700 font-medium hover:bg-yellow-100 transition-colors flex items-center shadow-sm"
             >
               ← Quay lại Shop
             </Link>
@@ -132,20 +120,19 @@ export default async function ProductDetailPage({
       </div>
 
       {relatedProducts.length > 0 && (
-        <section className="mt-2">
+        <section className="mt-12">
           <h3 className="text-2xl font-semibold mb-6">Có thể bạn quan tâm</h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {relatedProducts.map((p) => {
-              const relatedImageSrc: string =
-                Array.isArray(p.images) && p.images.length > 0
-                  ? p.images[0]
-                  : "/ham.png";
-              const relatedIsDeal = (p.price ?? 0) < 150000;
+              const relatedImageSrc = p.images?.[0] ?? "/ham.png";
               const relatedOutOfStock = (p.stock ?? 0) <= 0;
+              const relatedFinalPrice = p.discount && p.discount > 0
+                ? Math.round(p.price * (1 - p.discount / 100))
+                : p.price;
 
               return (
                 <Link key={p.slug} href={`/shop/${p.slug}`} className="block">
-                  <div className="relative rounded-xl border hover:shadow-lg transition-shadow duration-300">
+                  <div className="relative rounded-xl border border-gray-300 hover:shadow-md transition-shadow duration-300 bg-white">
                     <Image
                       src={relatedImageSrc}
                       alt={p.title}
@@ -158,38 +145,40 @@ export default async function ProductDetailPage({
                         Hết hàng
                       </span>
                     )}
-                    {relatedIsDeal && (
-                      <span className="absolute right-2 top-2 text-xs bg-amber-500 text-white px-2 py-1 rounded-md">
-                        Deal
+                    {p.discount && p.discount > 0 && (
+                      <span className="absolute right-2 top-2 text-xs bg-green-600 text-white px-2 py-1 rounded-md">
+                        -{p.discount}%
                       </span>
                     )}
 
                     <div className="p-4">
-                      <h4 className="font-semibold text-lg truncate">
-                        {p.title}
-                      </h4>
-                      <p className="mt-2 text-gray-900 text-md">
-                        Hãng: {p.brand}
+                      <h4 className="text-base font-semibold truncate">{p.title}</h4>
+                      <p className="mt-1 text-sm text-gray-900">Hãng: {p.brand}</p>
+                      <p className="mt-1 text-sm text-gray-600">
+                        Kho: <span className={relatedOutOfStock ? 'text-red-600 font-semibold' : 'text-green-600 font-semibold'}>
+                          {relatedOutOfStock ? 'Hết hàng' : `${p.stock} sản phẩm`}
+                        </span>
                       </p>
-                      {p.stock !== undefined && (
-<p className="mt-2 font-semi text-md text-gray-600">
-                          Kho:{" "}
-                          <span
-                            className={
-                              relatedOutOfStock
-                                ? "text-red-600 font-semibold"
-                                : "text-green-600 font-semibold"
-                            }
-                          >
-                            {relatedOutOfStock
-                              ? "Hết hàng"
-                              : `${p.stock} sản phẩm`}
-                          </span>
+                      <p className="mt-1 text-sm text-gray-600">Đánh giá: {p.rating}</p>
+                      {p.description && (
+                        <p className="mt-2 text-sm text-gray-600 line-clamp-2">
+                          {p.description}
                         </p>
                       )}
-                      <p className="mt-2 text-black-700">Đánh giá: {p.rating}</p>
-                      <p className="mt-2 font-bold text-gray-800">
-                        {formatVND(p.price)}
+                      <p className="mt-2 font-bold text-sm text-gray-800">
+                        {p.discount && p.discount > 0 ? (
+                          <>
+                            <span className="line-through text-gray-400 mr-2">
+                              {formatVND(p.price)}
+                            </span>
+                            <span className="text-red-600 font-semibold">
+                              {formatVND(relatedFinalPrice)}
+                            </span>
+                            <span className="ml-2 text-green-600 text-xs">-{p.discount}%</span>
+                          </>
+                        ) : (
+                          formatVND(p.price)
+                        )}
                       </p>
                     </div>
                   </div>
@@ -199,7 +188,6 @@ export default async function ProductDetailPage({
           </div>
         </section>
       )}
-      <SiteFooter />
     </main>
   );
 }

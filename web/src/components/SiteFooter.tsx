@@ -9,7 +9,7 @@ export default function SiteFooter() {
       relative
       overflow-hidden
     ">
-      {/* 🌟 Viền ánh kim trên */}
+      
       <div className="absolute top-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-yellow-400 to-transparent" />
 
       <div className="container mx-auto max-w-6xl px-4 py-14 text-center space-y-8 relative z-10">
@@ -73,3 +73,4 @@ export default function SiteFooter() {
     </footer>
   );
 }
+

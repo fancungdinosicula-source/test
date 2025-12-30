@@ -133,7 +133,7 @@ createProduct(30, "Tranh 'Dương Cước Trảm Long'", 259000, "/IMAGES/30.png
 createProduct(31, "Tranh 'Hỏa Kiếm và Ma Thủ'", 199000, "/IMAGES/31.png", BRANDS[0], COLORS[0], SIZES[3], "fashion", 0, 5,
   "Viêm Trụ tung kiếm giáng xuống Thượng Huyền Tam.", 20),
 
-createProduct(32, "Tranh 'Nhất Quyền Định Ma'", 299000, "/IMAGES/32.png", BRANDS[1], COLORS[1], SIZES[0], "fashion", 61, 3,
+createProduct(32, "Tranh 'Nhất Quyền Định Ma'", 299000, "/IMAGES/32.png", BRANDS[1], COLORS[1], SIZES[1], "fashion", 61, 3,
   "Saitama tung cú đấm chí mạng vào Boros, khí thế ngút trời.", 0),
 
 createProduct(33, "Tranh 'Thú Vương Đại Chiến'", 259000, "/IMAGES/33.png", BRANDS[2], COLORS[2], SIZES[1], "accessories", 18, 4,
@@ -190,3 +190,4 @@ createProduct(49, "Tranh 'Ba Lần Đánh Bạch Cốt Tinh'", 199000, "/IMAGES/
 createProduct(50, "Tranh 'Mr Gold'", 299000, "/IMAGES/50..png", BRANDS[1], COLORS[4], SIZES[2], "fashion", 21, 5,
   "Quý ngài mr gold.", 40),
 ];
+
